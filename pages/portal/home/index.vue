@@ -2,7 +2,7 @@
   <section class="page">
     <div class="center">
       <h2 class="title">Olá {{ user.name || "Usuario" }}</h2>
-      <NuxtLink to="/"><v-btn> Index page </v-btn></NuxtLink>
+      <UButton @click="getData">Get Data</UButton>
     </div>
   </section>
 </template>
@@ -12,36 +12,36 @@ const user = ref({
   name: "",
 });
 
-const publicUrl = useState("publicUrl");
+const publicUrl = "http://localhost:59031/dev_sl-x";
 
 definePageMeta({
   pageTransition: {
-    name: 'rotate'
-  }
-})
+    name: "rotate",
+  },
+});
 
 const getData = async () => {
   try {
-    const { data, error } = await useFetch(`${publicUrl.value}/session-info`, {
-      method: "GET",
-      headers: {
+    const response = await $fetch(
+      `http://localhost:59031/dev_sl-x/session-info`,
+      {
+        method: "GET",
         credentials: "include",
-      },
-    });
-
-    if (data.value) {
-      const response = await JSON.parse(data.value);
+      }
+    );
+    console.log(response);
+    if (response.usuario) {
       user.value.name = response.usuario.nome;
-    }
-
-    if (error.value) {
-      throw error.value;
     }
   } catch (e) {
     console.log(e);
     console.log("error");
   }
 };
+
+onMounted(() => {
+  getData();
+});
 </script>
 
 <style scoped></style>

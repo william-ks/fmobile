@@ -7,7 +7,7 @@
             <NuxtImg src="/lovo_navBar.png" />
           </div>
           <ClientOnly>
-            <Vueform class="form">
+            <Vueform v-model="form">
               <TextElement
                 label="E-mail:"
                 name="email"
@@ -27,7 +27,7 @@
                 :items="enterprises"
               />
             </Vueform>
-            <UButton to="/portal/home">Entrar</UButton>
+            <UButton class="mt-5" @click="login">Entrar</UButton>
           </ClientOnly>
         </div>
       </UCard>
@@ -40,63 +40,66 @@ import Card from "~/components/ui/Card/Card";
 
 const router = useRouter();
 
-const enterprises = ref([
-  {
-    value: 1,
-    label: "SL Soluções",
-  },
-]);
+const form = ref({});
+
+const enterprises = ref([]);
 
 useHead({
   title: "Login",
 });
 
-// const publicUrl = useRuntimeConfig().public.baseURL;
+const publicUrl = "http://localhost:59031/dev_sl-x";
 
-// const login = async (FormData, form$) => {
-//   try {
-//     await fetch(`${publicUrl.value}/login`, {
-//       method: "POST",
-//       credentials: "include",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: {
-//         email: form$.data.email,
-//         senha: form$.data.password,
-//         empresaId: form$.data.select,
-//       },
-//     });
+const login = async (FormData, form$) => {
+  try {
+    const response = await $fetch(`${publicUrl}/login`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: {
+        email: form.value.email,
+        senha: form.value.password,
+        empresaId: form.value.select,
+      },
+    });
+    console.log(response);
+    if (response.redirect) {
+      router.push("/portal/home");
+    }
+  } catch (e) {
+    console.log(e);
+    console.log("Error ao fazer login!");
+  }
+};
 
-//     router.push("/portal/home");
-//   } catch (e) {
-//     console.log(e);
-//     console.log("Error ao fazer login!");
-//   }
-// };
+const getEnterprises = async () => {
+  try {
+    const { data, error } = await useFetch(`${publicUrl}/empresas-select`, {
+      method: "GET",
+      credentials: "include",
+    });
 
-// const getEnterprises = async () => {
-//   try {
-//     const { data, error } = await useFetch(`${publicUrl}/empresas-select`, {
-//       method: "GET",
-//       credentials: "include",
-//     });
+    if (error.value) {
+      throw new Error(error.value);
+    }
 
-//     if (error.value) {
-//       throw new Error(error.value);
-//     }
+    data.value.forEach((el) => {
+      enterprises.value.push({
+        value: el.id,
+        label: el.nome,
+      });
+    });
+  } catch (e) {
+    console.log(e);
+    console.log("Error ao buscar empresas!");
+  }
+};
 
-//     data.value.forEach((el) => {
-//       enterprises.value.push({
-//         value: el.id,
-//         label: el.nome,
-//       });
-//     });
-//   } catch (e) {
-//     console.log(e);
-//     console.log("Error ao buscar empresas!");
-//   }
-// };
+onMounted(() => {
+  getEnterprises();
+});
 </script>
 
 <style scoped>
